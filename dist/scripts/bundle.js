@@ -46302,6 +46302,70 @@ module.exports = About;
 
 },{"react":158}],162:[function(require,module,exports){
 "use strict";
+
+var React = require('react');
+
+var AuthorList = React.createClass({displayName: "AuthorList",
+    render: function() {
+        var createAuthorRow = function(author) {
+            return (
+                React.createElement("tr", {key: author.id}, 
+                    React.createElement("td", null, React.createElement("a", {href: "/#authors/" + author.id}, author.id)), 
+                    React.createElement("td", null, author.firstName, " ", author.lastName)
+                )
+            );
+        };
+
+        return (
+            React.createElement("div", null, 
+                React.createElement("table", {className: "table"}, 
+                    React.createElement("thead", null, 
+                        React.createElement("th", null, "Id"), 
+                        React.createElement("th", null, "Name")
+                    ), 
+                    React.createElement("tbody", null, 
+                        this.props.authors.map(createAuthorRow, this)
+                    )
+                )
+            )
+        );
+    }
+});
+
+module.exports = AuthorList;
+
+},{"react":158}],163:[function(require,module,exports){
+"use strict";
+
+var React = require('react');
+var AuthorApi = require('../../api/authorApi');
+var AuthorList = require('./authorList');
+
+var Authors = React.createClass({displayName: "Authors",
+    getInitialState: function() {
+        return {
+            authors: []
+        };
+    },
+    componentDidMount: function() {
+        if(this.isMounted()) {
+            this.setState({ authors: AuthorApi.getAllAuthors() });
+        }
+    },
+    render: function() {
+        return (
+            React.createElement("div", null, 
+                React.createElement("h1", null, "Authors"), 
+                React.createElement(AuthorList, {authors: this.state.authors})
+            )
+        );
+    }
+});
+
+module.exports = Authors;
+
+},{"../../api/authorApi":159,"./authorList":162,"react":158}],164:[function(require,module,exports){
+"use strict";
 var React = require('react');
 
 var Header = React.createClass({displayName: "Header",
@@ -46325,7 +46389,7 @@ var Header = React.createClass({displayName: "Header",
 
 module.exports = Header;
 
-},{"react":158}],163:[function(require,module,exports){
+},{"react":158}],165:[function(require,module,exports){
 "use strict";
 var React = require('react');
 
@@ -46342,57 +46406,11 @@ var Home = React.createClass({displayName: "Home",
 
 module.exports = Home;
 
-},{"react":158}],164:[function(require,module,exports){
-"use strict";
-
-var React = require('react');
-var AuthorApi = require('../../api/authorApi');
-
-var Authors = React.createClass({displayName: "Authors",
-    getInitialState: function() {
-        return {
-            authors: []
-        };
-    },
-
-    componentWillMount: function() {
-        this.setState({ authors: AuthorApi.getAllAuthors() });
-    },
-
-    render: function() {
-        var createAuthorRow = function(author) {
-            return (
-                React.createElement("tr", {key: author.id}, 
-                    React.createElement("td", null, React.createElement("a", {href: "/#authors/" + author.id}, author.id)), 
-                    React.createElement("td", null, author.firstName, " ", author.lastName)
-                )
-            );
-        };
-
-        return (
-            React.createElement("div", null, 
-                React.createElement("h1", null, "Authors"), 
-                React.createElement("table", {className: "table"}, 
-                    React.createElement("thead", null, 
-                        React.createElement("th", null, "Id"), 
-                        React.createElement("th", null, "Name")
-                    ), 
-                    React.createElement("tbody", null, 
-                        this.state.authors.map(createAuthorRow, this)
-                    )
-                )
-            )
-        );
-    }
-});
-
-module.exports = Authors;
-
-},{"../../api/authorApi":159,"react":158}],165:[function(require,module,exports){
+},{"react":158}],166:[function(require,module,exports){
 $ = jQuery = require('jquery');
 var React = require('react');
 var Home = require('./components/homePage');
-var Authors = require('./components/others/authorPage');
+var Authors = require('./components/authors/authorPage');
 var About = require('./components/about/aboutPage');
 var Header = require('./components/common/header');
 
@@ -46426,4 +46444,4 @@ var Header = require('./components/common/header');
     render();
 })(window);
 
-},{"./components/about/aboutPage":161,"./components/common/header":162,"./components/homePage":163,"./components/others/authorPage":164,"jquery":1,"react":158}]},{},[165]);
+},{"./components/about/aboutPage":161,"./components/authors/authorPage":163,"./components/common/header":164,"./components/homePage":165,"jquery":1,"react":158}]},{},[166]);
