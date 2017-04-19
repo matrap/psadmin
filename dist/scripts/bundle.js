@@ -49398,10 +49398,15 @@ module.exports = AuthorPage;
 "use strict";
 
 var React = require('react');
+var Router = require('react-router');
 var AuthorForm = require('./authorForm');
 var AuthorApi = require('../../api/authorApi');
 
 var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
+    mixins: [
+        Router.Navigation
+    ],
+
     getInitialState: function() {
         return {
             author: {id: '', firstName: '', lastName: ''}
@@ -49418,6 +49423,7 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
     saveAuthor: function(event) {
         event.preventDefault();
         AuthorApi.saveAuthor(this.state.author);
+        this.transitionTo('authors');
     },
 
     render: function() {
@@ -49434,7 +49440,7 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
 
 module.exports = ManageAuthorPage;
 
-},{"../../api/authorApi":198,"./authorForm":202,"react":197}],206:[function(require,module,exports){
+},{"../../api/authorApi":198,"./authorForm":202,"react":197,"react-router":28}],206:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -49484,7 +49490,7 @@ var Input = React.createClass({displayName: "Input",
     }
     
     return (
-     React.createElement("div", {className: wrapperClass}, 
+      React.createElement("div", {className: wrapperClass}, 
         React.createElement("label", {htmlFor: this.props.name}, this.props.label), 
         React.createElement("div", {className: "field"}, 
           React.createElement("input", {type: "text", 
