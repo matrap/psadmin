@@ -3,7 +3,7 @@
 var React = require('react');
 var Input = require('../common/textInput');
 
-var Authorform = React.createClass({
+var AuthorForm = React.createClass({
 	propTypes: {
 		author: React.PropTypes.object.isRequired,
 		onSave: React.PropTypes.func.isRequired,
@@ -34,4 +34,4 @@ var Authorform = React.createClass({
     }
 });
 
-module.exports = Authorform;
+module.exports = AuthorForm;
