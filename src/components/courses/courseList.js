@@ -3,6 +3,7 @@
 var React = require('react');
 var Router = require('react-router');
 var Link = Router.Link;
+var CourseActions = require('../../actions/courseActions');
 var Toastr = require('toastr');
 
 var CourseList = React.createClass({
@@ -17,6 +18,7 @@ var CourseList = React.createClass({
 
     deleteCourse: function(id, event) {
         event.preventDefault();
+        CourseActions.deleteCourse(id);
         Toastr.success('Course Deleted');
     },    
 

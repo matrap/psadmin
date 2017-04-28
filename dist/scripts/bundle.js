@@ -50950,6 +50950,7 @@ module.exports = CourseForm;
 var React = require('react');
 var Router = require('react-router');
 var Link = Router.Link;
+var CourseActions = require('../../actions/courseActions');
 var Toastr = require('toastr');
 
 var CourseList = React.createClass({displayName: "CourseList",
@@ -50964,6 +50965,7 @@ var CourseList = React.createClass({displayName: "CourseList",
 
     deleteCourse: function(id, event) {
         event.preventDefault();
+        CourseActions.deleteCourse(id);
         Toastr.success('Course Deleted');
     },    
 
@@ -51003,7 +51005,7 @@ var CourseList = React.createClass({displayName: "CourseList",
 
 module.exports = CourseList;
 
-},{"react":202,"react-router":33,"toastr":203}],221:[function(require,module,exports){
+},{"../../actions/courseActions":205,"react":202,"react-router":33,"toastr":203}],221:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -51372,7 +51374,7 @@ Dispatcher.register(function(action) {
             break;    
         case ActionTypes.DELETE_COURSE :
             _.remove(_courses, function(course) {
-                return course.id === course.id;
+                return action.id === course.id;
             });
             CourseStore.emitChange();
             break;                                    
