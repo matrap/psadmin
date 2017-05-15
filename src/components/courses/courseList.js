@@ -11,11 +11,6 @@ var CourseList = React.createClass({
         courses: React.PropTypes.array.isRequired
     },
 
-    watchCourse: function(id, event) {
-        event.preventDefault();
-        Toastr.success('Watch');
-    },
-
     deleteCourse: function(id, event) {
         event.preventDefault();
         CourseActions.deleteCourse(id);
@@ -26,7 +21,7 @@ var CourseList = React.createClass({
         var createCourseRow = function(course) {
             return (
                 <tr key={course.id}>
-                    <td><a href onClick={this.watchCourse.bind(this, course.id)}>Watch</a></td>     
+                    <td><a href={course.watchHref}>Watch</a></td>     
                     <td><a href onClick={this.deleteCourse.bind(this, course.id)}>Delete</a></td>                                         
                     <td><Link to="manageCourse" params={{id: course.id}}>{course.title}</Link></td> 
                     <td>{course.author.name}</td>   

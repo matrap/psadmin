@@ -2,6 +2,7 @@
 
 var React = require('react');
 var Input = require('../common/textInput');
+var Dropdown = require('../common/dropdownButton');
 
 var CourseForm = React.createClass({
 	propTypes: {
@@ -12,7 +13,6 @@ var CourseForm = React.createClass({
 	},
 
     render: function() {
-
 		var hiddenStyle = {
 			visibility: "hidden"
 		};      
@@ -26,12 +26,13 @@ var CourseForm = React.createClass({
 					value={this.props.course.title}
 					onChange={this.props.onChange}
 					error={this.props.errors.title} />
-				<Input
+				<Dropdown 
 					name="author"
 					label="Author"
-					value={this.props.course.author.name}
+					list={this.props.course.author}					
+					value={this.props.course.author}
 					onChange={this.props.onChange} 
-					error={this.props.errors.author} />
+					error={this.props.errors.author}/>
 				<Input
 					name="category"
 					label="Category"
