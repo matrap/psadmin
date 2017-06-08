@@ -56,14 +56,13 @@ var CourseForm = React.createClass({
 					value={this.props.course.title}
 					onChange={this.props.onChange}
 					error={this.props.errors.title} />
-				<div className="section">
-					<label className="section-heading">Author</label>
+				<div className="form-group">
+					<label>Author</label>
 					<Select
 						onChange={this.onAuthorChange}
 						options={this.state.authorsList}
 						simpleValue
-						value={this.state.authorValue}
-						/>
+						value={this.state.authorValue} />
 				</div>
 				<Input
 					name="category"

@@ -53610,57 +53610,8 @@ function isTextNode(object) {
 
 module.exports = isTextNode;
 },{"./isNode":224}],226:[function(require,module,exports){
-(function (process){
-/**
- * Copyright 2013-2015, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
- * @providesModule keyMirror
- * @typechecks static-only
- */
-
-'use strict';
-
-var invariant = require('./invariant');
-
-/**
- * Constructs an enumeration with keys equal to their value.
- *
- * For example:
- *
- *   var COLORS = keyMirror({blue: null, red: null});
- *   var myColor = COLORS.blue;
- *   var isColorValid = !!COLORS[myColor];
- *
- * The last line could not be performed if the values of the generated enum were
- * not equal to their keys.
- *
- *   Input:  {key1: val1, key2: val2}
- *   Output: {key1: key1, key2: key2}
- *
- * @param {object} obj
- * @return {object}
- */
-var keyMirror = function (obj) {
-  var ret = {};
-  var key;
-  !(obj instanceof Object && !Array.isArray(obj)) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'keyMirror(...): Argument must be an object.') : invariant(false) : undefined;
-  for (key in obj) {
-    if (!obj.hasOwnProperty(key)) {
-      continue;
-    }
-    ret[key] = key;
-  }
-  return ret;
-};
-
-module.exports = keyMirror;
-}).call(this,require('_process'))
-},{"./invariant":223,"_process":18}],227:[function(require,module,exports){
+arguments[4][11][0].apply(exports,arguments)
+},{"./invariant":223,"_process":18,"dup":11}],227:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -54453,6 +54404,161 @@ module.exports = require('./lib/React');
 }));
 
 },{"jquery":15}],237:[function(require,module,exports){
+(function(module) {
+    'use strict';
+
+    module.exports.is_uri = is_iri;
+    module.exports.is_http_uri = is_http_iri;
+    module.exports.is_https_uri = is_https_iri;
+    module.exports.is_web_uri = is_web_iri;
+    // Create aliases
+    module.exports.isUri = is_iri;
+    module.exports.isHttpUri = is_http_iri;
+    module.exports.isHttpsUri = is_https_iri;
+    module.exports.isWebUri = is_web_iri;
+
+
+    // private function
+    // internal URI spitter method - direct from RFC 3986
+    var splitUri = function(uri) {
+        var splitted = uri.match(/(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?/);
+        return splitted;
+    };
+
+    function is_iri(value) {
+        if (!value) {
+            return;
+        }
+
+        // check for illegal characters
+        if (/[^a-z0-9\:\/\?\#\[\]\@\!\$\&\'\(\)\*\+\,\;\=\.\-\_\~\%]/i.test(value)) return;
+
+        // check for hex escapes that aren't complete
+        if (/%[^0-9a-f]/i.test(value)) return;
+        if (/%[0-9a-f](:?[^0-9a-f]|$)/i.test(value)) return;
+
+        var splitted = [];
+        var scheme = '';
+        var authority = '';
+        var path = '';
+        var query = '';
+        var fragment = '';
+        var out = '';
+
+        // from RFC 3986
+        splitted = splitUri(value);
+        scheme = splitted[1]; 
+        authority = splitted[2];
+        path = splitted[3];
+        query = splitted[4];
+        fragment = splitted[5];
+
+        // scheme and path are required, though the path can be empty
+        if (!(scheme && scheme.length && path.length >= 0)) return;
+
+        // if authority is present, the path must be empty or begin with a /
+        if (authority && authority.length) {
+            if (!(path.length === 0 || /^\//.test(path))) return;
+        } else {
+            // if authority is not present, the path must not start with //
+            if (/^\/\//.test(path)) return;
+        }
+
+        // scheme must begin with a letter, then consist of letters, digits, +, ., or -
+        if (!/^[a-z][a-z0-9\+\-\.]*$/.test(scheme.toLowerCase()))  return;
+
+        // re-assemble the URL per section 5.3 in RFC 3986
+        out += scheme + ':';
+        if (authority && authority.length) {
+            out += '//' + authority;
+        }
+
+        out += path;
+
+        if (query && query.length) {
+            out += '?' + query;
+        }
+
+        if (fragment && fragment.length) {
+            out += '#' + fragment;
+        }
+
+        return out;
+    }
+
+    function is_http_iri(value, allowHttps) {
+        if (!is_iri(value)) {
+            return;
+        }
+
+        var splitted = [];
+        var scheme = '';
+        var authority = '';
+        var path = '';
+        var port = '';
+        var query = '';
+        var fragment = '';
+        var out = '';
+
+        // from RFC 3986
+        splitted = splitUri(value);
+        scheme = splitted[1]; 
+        authority = splitted[2];
+        path = splitted[3];
+        query = splitted[4];
+        fragment = splitted[5];
+
+        if (!scheme)  return;
+
+        if(allowHttps) {
+            if (scheme.toLowerCase() != 'https') return;
+        } else {
+            if (scheme.toLowerCase() != 'http') return;
+        }
+
+        // fully-qualified URIs must have an authority section that is
+        // a valid host
+        if (!authority) {
+            return;
+        }
+
+        // enable port component
+        if (/:(\d+)$/.test(authority)) {
+            port = authority.match(/:(\d+)$/)[0];
+            authority = authority.replace(/:\d+$/, '');
+        }
+
+        out += scheme + ':';
+        out += '//' + authority;
+        
+        if (port) {
+            out += port;
+        }
+        
+        out += path;
+        
+        if(query && query.length){
+            out += '?' + query;
+        }
+
+        if(fragment && fragment.length){
+            out += '#' + fragment;
+        }
+        
+        return out;
+    }
+
+    function is_https_iri(value) {
+        return is_http_iri(value, true);
+    }
+
+    function is_web_iri(value) {
+        return (is_http_iri(value) || is_https_iri(value));
+    }
+
+})(module);
+
+},{}],238:[function(require,module,exports){
 "use strict";
 
 var Dispatcher = require('../dispatcher/appDispatcher');
@@ -54491,7 +54597,7 @@ var AuthorActions = {
 
 module.exports = AuthorActions;
 
-},{"../api/authorApi":240,"../constans/actionTypes":258,"../dispatcher/appDispatcher":259}],238:[function(require,module,exports){
+},{"../api/authorApi":241,"../constans/actionTypes":259,"../dispatcher/appDispatcher":260}],239:[function(require,module,exports){
 "use strict";
 
 var Dispatcher = require('../dispatcher/appDispatcher');
@@ -54529,7 +54635,7 @@ var CourseActions = {
 
 module.exports = CourseActions;
 
-},{"../api/courseApi":242,"../constans/actionTypes":258,"../dispatcher/appDispatcher":259}],239:[function(require,module,exports){
+},{"../api/courseApi":243,"../constans/actionTypes":259,"../dispatcher/appDispatcher":260}],240:[function(require,module,exports){
 "use strict";
 
 var Dispatcher = require('../dispatcher/appDispatcher');
@@ -54551,7 +54657,7 @@ var InitializeActions = {
 
 module.exports = InitializeActions;
 
-},{"../api/authorApi":240,"../api/courseApi":242,"../constans/actionTypes":258,"../dispatcher/appDispatcher":259}],240:[function(require,module,exports){
+},{"../api/authorApi":241,"../api/courseApi":243,"../constans/actionTypes":259,"../dispatcher/appDispatcher":260}],241:[function(require,module,exports){
 "use strict";
 
 //This file is mocking a web API by hitting hard coded data.
@@ -54603,7 +54709,7 @@ var AuthorApi = {
 
 module.exports = AuthorApi;
 
-},{"./authorData":241,"lodash":16}],241:[function(require,module,exports){
+},{"./authorData":242,"lodash":16}],242:[function(require,module,exports){
 module.exports = {
 	authors: 
 	[
@@ -54625,7 +54731,7 @@ module.exports = {
 	]
 };
 
-},{}],242:[function(require,module,exports){
+},{}],243:[function(require,module,exports){
 "use strict";
 
 //This file is mocking a web API by hitting hard coded data.
@@ -54674,7 +54780,7 @@ var CourseApi = {
 
 module.exports = CourseApi;
 
-},{"./courseData":243,"lodash":16}],243:[function(require,module,exports){
+},{"./courseData":244,"lodash":16}],244:[function(require,module,exports){
 module.exports = {
 	courses: [
 		{  
@@ -54724,7 +54830,7 @@ module.exports = {
 	]
 };
 
-},{}],244:[function(require,module,exports){
+},{}],245:[function(require,module,exports){
 "use strict";
 var React = require('react');
 
@@ -54767,7 +54873,7 @@ var About = React.createClass({displayName: "About",
 
 module.exports = About;
 
-},{"react":235}],245:[function(require,module,exports){
+},{"react":235}],246:[function(require,module,exports){
 /*eslint-disable strict */ //Disabling check because we can't run strict mode. Need global vars.
 
 var React = require('react'); 
@@ -54790,7 +54896,7 @@ var App = React.createClass({displayName: "App",
 
 module.exports = App;
 
-},{"./common/header":250,"jquery":15,"react":235,"react-router":53}],246:[function(require,module,exports){
+},{"./common/header":251,"jquery":15,"react":235,"react-router":53}],247:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -54829,7 +54935,7 @@ var AuthorForm = React.createClass({displayName: "AuthorForm",
 
 module.exports = AuthorForm;
 
-},{"../common/textInput":251,"react":235}],247:[function(require,module,exports){
+},{"../common/textInput":252,"react":235}],248:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -54879,7 +54985,7 @@ var AuthorList = React.createClass({displayName: "AuthorList",
 
 module.exports = AuthorList;
 
-},{"../../actions/authorActions":237,"react":235,"react-router":53,"toastr":236}],248:[function(require,module,exports){
+},{"../../actions/authorActions":238,"react":235,"react-router":53,"toastr":236}],249:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -54921,7 +55027,7 @@ var AuthorPage = React.createClass({displayName: "AuthorPage",
 
 module.exports = AuthorPage;
 
-},{"../../stores/authorStore":262,"./authorList":247,"react":235,"react-router":53}],249:[function(require,module,exports){
+},{"../../stores/authorStore":263,"./authorList":248,"react":235,"react-router":53}],250:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -55019,7 +55125,7 @@ var ManageAuthorPage = React.createClass({displayName: "ManageAuthorPage",
 
 module.exports = ManageAuthorPage;
 
-},{"../../actions/authorActions":237,"../../stores/authorStore":262,"./authorForm":246,"react":235,"react-router":53,"toastr":236}],250:[function(require,module,exports){
+},{"../../actions/authorActions":238,"../../stores/authorStore":263,"./authorForm":247,"react":235,"react-router":53,"toastr":236}],251:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -55048,7 +55154,7 @@ var Header = React.createClass({displayName: "Header",
 
 module.exports = Header;
 
-},{"react":235,"react-router":53}],251:[function(require,module,exports){
+},{"react":235,"react-router":53}],252:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -55089,7 +55195,7 @@ var Input = React.createClass({displayName: "Input",
 
 module.exports = Input;
 
-},{"react":235}],252:[function(require,module,exports){
+},{"react":235}],253:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -55148,14 +55254,13 @@ var CourseForm = React.createClass({displayName: "CourseForm",
 					value: this.props.course.title, 
 					onChange: this.props.onChange, 
 					error: this.props.errors.title}), 
-				React.createElement("div", {className: "section"}, 
-					React.createElement("label", {className: "section-heading"}, "Author"), 
+				React.createElement("div", {className: "form-group"}, 
+					React.createElement("label", null, "Author"), 
 					React.createElement(Select, {
 						onChange: this.onAuthorChange, 
 						options: this.state.authorsList, 
 						simpleValue: true, 
-						value: this.state.authorValue}
-						)
+						value: this.state.authorValue})
 				), 
 				React.createElement(Input, {
 					name: "category", 
@@ -55185,7 +55290,7 @@ var CourseForm = React.createClass({displayName: "CourseForm",
 
 module.exports = CourseForm;
 
-},{"../../stores/authorStore":262,"../common/textInput":251,"react":235,"react-select":73}],253:[function(require,module,exports){
+},{"../../stores/authorStore":263,"../common/textInput":252,"react":235,"react-select":73}],254:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -55241,7 +55346,7 @@ var CourseList = React.createClass({displayName: "CourseList",
 
 module.exports = CourseList;
 
-},{"../../actions/courseActions":238,"react":235,"react-router":53,"toastr":236}],254:[function(require,module,exports){
+},{"../../actions/courseActions":239,"react":235,"react-router":53,"toastr":236}],255:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -55282,7 +55387,7 @@ var CoursePage = React.createClass({displayName: "CoursePage",
 
 module.exports = CoursePage;
 
-},{"../../stores/courseStore":263,"./courseList":253,"react":235,"react-router":53}],255:[function(require,module,exports){
+},{"../../stores/courseStore":264,"./courseList":254,"react":235,"react-router":53}],256:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -55292,6 +55397,7 @@ var AuthorStore = require('../../stores/authorStore');
 var CourseForm = require('./CourseForm');
 var CourseActions = require('../../actions/courseActions');
 var Toastr = require('toastr');
+var validUrl = require('valid-url');
 
 var ManageCoursePage = React.createClass({displayName: "ManageCoursePage",
     statics: {
@@ -55337,6 +55443,11 @@ var ManageCoursePage = React.createClass({displayName: "ManageCoursePage",
 
 		if (this.state.course.length.search(":") < 0) {
 			this.state.errors.length = 'Length must have format minutes:seconds';
+			formIsValid = false;
+		}  
+
+		if (!validUrl.isUri(this.state.course.watchHref)) {
+			this.state.errors.watchHref = 'It must be an URL';
 			formIsValid = false;
 		}        
 
@@ -55408,7 +55519,7 @@ var ManageCoursePage = React.createClass({displayName: "ManageCoursePage",
 
 module.exports = ManageCoursePage;
 
-},{"../../actions/courseActions":238,"../../stores/authorStore":262,"../../stores/courseStore":263,"./CourseForm":252,"react":235,"react-router":53,"toastr":236}],256:[function(require,module,exports){
+},{"../../actions/courseActions":239,"../../stores/authorStore":263,"../../stores/courseStore":264,"./CourseForm":253,"react":235,"react-router":53,"toastr":236,"valid-url":237}],257:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -55429,7 +55540,7 @@ var Home = React.createClass({displayName: "Home",
 
 module.exports = Home;
 
-},{"react":235,"react-router":53}],257:[function(require,module,exports){
+},{"react":235,"react-router":53}],258:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -55450,7 +55561,7 @@ var NotFoundPage = React.createClass({displayName: "NotFoundPage",
 
 module.exports = NotFoundPage;
 
-},{"react":235,"react-router":53}],258:[function(require,module,exports){
+},{"react":235,"react-router":53}],259:[function(require,module,exports){
 "use strict";
 
 var keyMirror = require('fbjs/lib/keyMirror');
@@ -55465,12 +55576,12 @@ module.exports = keyMirror({
     DELETE_COURSE: null     
 });
 
-},{"fbjs/lib/keyMirror":11}],259:[function(require,module,exports){
+},{"fbjs/lib/keyMirror":11}],260:[function(require,module,exports){
 var Dispatcher = require('flux').Dispatcher;
 
 module.exports = new Dispatcher();
 
-},{"flux":12}],260:[function(require,module,exports){
+},{"flux":12}],261:[function(require,module,exports){
 "use strict";
 var React = require('react');
 var ReactDOM = require('react-dom');
@@ -55484,7 +55595,7 @@ Router.run(routes, function(Handler) {
 	ReactDOM.render(React.createElement(Handler, null), document.getElementById('app'));
 });
 
-},{"./actions/initializeActions":239,"./routes":261,"react":235,"react-dom":27,"react-router":53}],261:[function(require,module,exports){
+},{"./actions/initializeActions":240,"./routes":262,"react":235,"react-dom":27,"react-router":53}],262:[function(require,module,exports){
 "use strict";
 
 var React = require('react');
@@ -55513,7 +55624,7 @@ var routes = (
 
 module.exports = routes;
 
-},{"./components/about/aboutPage":244,"./components/app":245,"./components/authors/authorPage":248,"./components/authors/manageAuthorPage":249,"./components/courses/coursePage":254,"./components/courses/manageCoursePage":255,"./components/homePage":256,"./components/notFoundPage":257,"react":235,"react-router":53}],262:[function(require,module,exports){
+},{"./components/about/aboutPage":245,"./components/app":246,"./components/authors/authorPage":249,"./components/authors/manageAuthorPage":250,"./components/courses/coursePage":255,"./components/courses/manageCoursePage":256,"./components/homePage":257,"./components/notFoundPage":258,"react":235,"react-router":53}],263:[function(require,module,exports){
 "use strict";
 
 var Dispatcher = require('../dispatcher/appDispatcher');
@@ -55576,7 +55687,7 @@ Dispatcher.register(function(action) {
 
 module.exports = AuthorStore;
 
-},{"../constans/actionTypes":258,"../dispatcher/appDispatcher":259,"events":9,"lodash":16,"object-assign":17}],263:[function(require,module,exports){
+},{"../constans/actionTypes":259,"../dispatcher/appDispatcher":260,"events":9,"lodash":16,"object-assign":17}],264:[function(require,module,exports){
 "use strict";
 
 var Dispatcher = require('../dispatcher/appDispatcher');
@@ -55638,4 +55749,4 @@ Dispatcher.register(function(action) {
 
 module.exports = CourseStore;
 
-},{"../constans/actionTypes":258,"../dispatcher/appDispatcher":259,"events":9,"lodash":16,"object-assign":17}]},{},[260]);
+},{"../constans/actionTypes":259,"../dispatcher/appDispatcher":260,"events":9,"lodash":16,"object-assign":17}]},{},[261]);

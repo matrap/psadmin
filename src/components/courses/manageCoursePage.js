@@ -7,6 +7,7 @@ var AuthorStore = require('../../stores/authorStore');
 var CourseForm = require('./CourseForm');
 var CourseActions = require('../../actions/courseActions');
 var Toastr = require('toastr');
+var validUrl = require('valid-url');
 
 var ManageCoursePage = React.createClass({
     statics: {
@@ -52,6 +53,11 @@ var ManageCoursePage = React.createClass({
 
 		if (this.state.course.length.search(":") < 0) {
 			this.state.errors.length = 'Length must have format minutes:seconds';
+			formIsValid = false;
+		}  
+
+		if (!validUrl.isUri(this.state.course.watchHref)) {
+			this.state.errors.watchHref = 'It must be an URL';
 			formIsValid = false;
 		}        
 
