@@ -3,6 +3,7 @@
 var React = require('react');
 var Router = require('react-router');
 var CourseStore = require('../../stores/courseStore');
+var AuthorStore = require('../../stores/authorStore');
 var CourseForm = require('./CourseForm');
 var CourseActions = require('../../actions/courseActions');
 var Toastr = require('toastr');
@@ -22,7 +23,7 @@ var ManageCoursePage = React.createClass({
 
     getInitialState: function() {
         return {
-            course: {id: '', title: '', author: '', category: '', length: '', watchHref: ''},
+            course: {id: '', title: '', author: [], category: '', length: '', watchHref: ''},
             errors: {},
             dirty: false         
         };
@@ -30,7 +31,6 @@ var ManageCoursePage = React.createClass({
 
     componentWillMount: function() {
         var courseId = this.props.params.id;
-
         if(courseId) {
             this.setState({course: CourseStore.getCoursesById(courseId)});
         }
@@ -62,9 +62,26 @@ var ManageCoursePage = React.createClass({
     setCourseState: function(event) {
         this.setState({dirty: true});
         var field = event.target.name;
-        var value = event.target.value;        
+        var value = event.target.value; 
         this.state.course[field] = value;
-        return this.setState({author: this.state.course});
+        return this.setState({course: this.state.course});
+    },
+
+    setAuthorForCourseState: function(authorId) {
+        this.setState({dirty: true});
+        var field = 'author';
+        var value = this.createAuthorforCourse(authorId);
+        this.state.course[field] = value;
+        return this.setState({course: this.state.course});
+    },
+
+    createAuthorforCourse: function(authorId) {
+        var author = AuthorStore.getAuthorById(authorId);
+        var authorForCourse = {
+            id: author.id,
+            name: author.firstName + ' ' + author.lastName
+        };
+        return authorForCourse;
     },
 
     isEditMode: function() {
@@ -94,6 +111,7 @@ var ManageCoursePage = React.createClass({
             <div>
                 <CourseForm 
                     course={this.state.course}
+                    onAuthorChange={this.setAuthorForCourseState}
                     onChange={this.setCourseState}
                     onSave={this.saveCourse}
                     isEditMode={this.isEditMode()}

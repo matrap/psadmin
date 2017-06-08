@@ -2,7 +2,8 @@
 
 var React = require('react');
 var Input = require('../common/textInput');
-var Dropdown = require('../common/dropdownButton');
+var Select = require('react-select');
+var AuthorStore = require('../../stores/authorStore');
 
 var CourseForm = React.createClass({
 	propTypes: {
@@ -11,6 +12,35 @@ var CourseForm = React.createClass({
 		onChange: React.PropTypes.func.isRequired,
 		errors: React.PropTypes.object						
 	},
+
+    componentWillMount: function() {
+        var authors = AuthorStore.getAllAuthors();
+		var authorsList = authors.map(this.authorMapper, this);
+		this.setState({
+			authorsList: authorsList
+		});
+    },	
+
+	getInitialState: function() {
+		return {
+			authorsList: [],
+			authorValue: null
+		};
+	},
+
+	authorMapper: function(author) {
+		return {
+				value: author.id,
+				label: author.firstName + ' ' + author.lastName
+		};	
+	},
+
+	onAuthorChange: function(value) {
+		this.setState({
+			authorValue: value 
+		});
+		this.props.onAuthorChange(value);
+	},	
 
     render: function() {
 		var hiddenStyle = {
@@ -26,13 +56,15 @@ var CourseForm = React.createClass({
 					value={this.props.course.title}
 					onChange={this.props.onChange}
 					error={this.props.errors.title} />
-				<Dropdown 
-					name="author"
-					label="Author"
-					list={this.props.course.author}					
-					value={this.props.course.author}
-					onChange={this.props.onChange} 
-					error={this.props.errors.author}/>
+				<div className="section">
+					<label className="section-heading">Author</label>
+					<Select
+						onChange={this.onAuthorChange}
+						options={this.state.authorsList}
+						simpleValue
+						value={this.state.authorValue}
+						/>
+				</div>
 				<Input
 					name="category"
 					label="Category"
