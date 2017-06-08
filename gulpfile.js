@@ -17,9 +17,10 @@ var config = {
 		js: './src/**/*.js',
 		images: './src/images/*',
 		css: [
-      	  'node_modules/bootstrap/dist/css/bootstrap.min.css',
-      	  'node_modules/bootstrap/dist/css/bootstrap-theme.min.css',
-      	  'node_modules/toastr/toastr.css'			
+			'node_modules/bootstrap/dist/css/bootstrap.min.css',
+			'node_modules/bootstrap/dist/css/bootstrap-theme.min.css',
+			'node_modules/react-select/dist/react-select.min.css',
+			'node_modules/toastr/toastr.scss'		
     	],
 		dist: './dist',
 		mainJs: './src/main.js'
