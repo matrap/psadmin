@@ -19,9 +19,11 @@
     "gulp-open": "^1.0.0",
     "jquery": "^2.1.4",
     "lodash": "^4.17.4",
-    "react": "^0.13.3",
+    "react": "^15.3.0",
     "react-bootstrap": "^0.31.0",
+    "react-dom": "^15.3.0",
     "react-router": "^0.13.3",
+    "react-select": "^1.0.0-rc.5",
     "reactify": "^1.1.1",
     "toastr": "^2.1.0",
     "vinyl-source-stream": "^1.1.0"

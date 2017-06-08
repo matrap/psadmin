@@ -75,6 +75,20 @@
             start();
         }, delay);
     });
+    test('clear - after clear with force option toast with focus disappears', 1, function () {
+        //Arrange
+        var $toast;
+        var msg = sampleMsg + '<br/><br/><button type="button">Clear</button>';
+        //Act
+        $toast = toastr.info(msg, sampleTitle + '-1');
+        $toast.find('button').focus();
+        toastr.clear($toast, { force: true });
+        var $container = toastr.getContainer();
+        //Assert
+        ok($container && $container.children().length === 0, 'Focused toast after a clear with force is not visible');
+        //Teardown
+        resetContainer();
+    });
     asyncTest('clear and show - show 2 toasts, clear both, then show 1 more', 2, function () {
         //Arrange
         var $toast = [];
@@ -285,6 +299,61 @@
         clearContainerChildren();
     });
 
+
+    module('escape html', {
+        teardown: function () {
+            toastr.options.escapeHtml = false;
+        }
+    });
+    test('info - escape html', 2, function () {
+        //Arrange
+        toastr.options.escapeHtml = true;
+        //Act
+        var $toast = toastr.info('html <strong>message</strong>', 'html <u>title</u>');
+        //Assert
+        equal($toast.find('div.toast-title').html(), 'html &lt;u&gt;title&lt;/u&gt;', 'Title is escaped');
+        equal($toast.find('div.toast-message').html(), 'html &lt;strong&gt;message&lt;/strong&gt;', 'Message is escaped');
+        //Teardown
+        $toast.remove();
+        clearContainerChildren();
+    });
+    test('warning - escape html', 2, function () {
+        //Arrange
+        toastr.options.escapeHtml = true;
+        //Act
+        var $toast = toastr.warning('html <strong>message</strong>', 'html <u>title</u>');
+        //Assert
+        equal($toast.find('div.toast-title').html(), 'html &lt;u&gt;title&lt;/u&gt;', 'Title is escaped');
+        equal($toast.find('div.toast-message').html(), 'html &lt;strong&gt;message&lt;/strong&gt;', 'Message is escaped');
+        //Teardown
+        $toast.remove();
+        clearContainerChildren();
+    });
+    test('error - escape html', 2, function () {
+        //Arrange
+        toastr.options.escapeHtml = true;
+        //Act
+        var $toast = toastr.error('html <strong>message</strong>', 'html <u>title</u>');
+        //Assert
+        equal($toast.find('div.toast-title').html(), 'html &lt;u&gt;title&lt;/u&gt;', 'Title is escaped');
+        equal($toast.find('div.toast-message').html(), 'html &lt;strong&gt;message&lt;/strong&gt;', 'Message is escaped');
+        //Teardown
+        $toast.remove();
+        clearContainerChildren();
+    });
+    test('success - escape html', 2, function () {
+        //Arrange
+        toastr.options.escapeHtml = true;
+        //Act
+        var $toast = toastr.success('html <strong>message</strong>', 'html <u>title</u>');
+        //Assert
+        equal($toast.find('div.toast-title').html(), 'html &lt;u&gt;title&lt;/u&gt;', 'Title is escaped');
+        equal($toast.find('div.toast-message').html(), 'html &lt;strong&gt;message&lt;/strong&gt;', 'Message is escaped');
+        //Teardown
+        $toast.remove();
+        clearContainerChildren();
+    });
+
     module('closeButton', {
         teardown: function () {
             toastr.options.closeButton = false;
@@ -311,6 +380,35 @@
         //Teardown
         $toast.remove();
         clearContainerChildren();
+    });
+    test('close button has type=button', 1, function () {
+        //Arrange
+        toastr.options.closeButton = true;
+        //Act
+        var $toast = toastr.success('');
+        //Assert
+        equal($toast.find('button[type="button"].toast-close-button').length, 1, 'close button should have type=button');
+        //Teardown
+        $toast.remove();
+        clearContainerChildren();
+    });
+    asyncTest('close button duration', 1, function () {
+        //Arrange
+        toastr.options.closeButton = true;
+        toastr.options.closeDuration = 0;
+        toastr.options.hideDuration = 2000;
+        var $container = toastr.getContainer();
+        //Act
+        var $toast = toastr.success('');
+        $toast.find('button.toast-close-button').click();
+        setTimeout(function () {
+            //Assert
+            ok($container && $container.children().length === 0, 'close button should support own hide animation');
+            //Teardown
+            toastr.options.hideDuration = 0;
+            resetContainer();
+            start();
+        }, 500);
     });
 
     module('progressBar', {
@@ -416,9 +514,25 @@
         $toast[0] = toastr.info(sampleMsg, sampleTitle);
         $toast[1] = toastr.info(sampleMsg, sampleTitle);
         $toast[2] = toastr.info(sampleMsg + " 1", sampleTitle);
+        $toast[3] = toastr.info(sampleMsg, sampleTitle);
         var $container = toastr.getContainer();
 
-        ok($container && $container.children().length === 2);
+        ok($container && $container.children().length === 3);
+
+        clearContainerChildren();
+    });
+
+    test('event - prevent duplicate sequential toasts, but allow previous after clear.', 1, function(){
+        toastr.options.preventDuplicates = true;
+
+        var $toast = [];
+        $toast[0] = toastr.info(sampleMsg, sampleTitle);
+        $toast[1] = toastr.info(sampleMsg, sampleTitle);
+        clearContainerChildren();
+        $toast[3] = toastr.info(sampleMsg, sampleTitle);
+        var $container = toastr.getContainer();
+
+        ok($container && $container.children().length === 1);
 
         clearContainerChildren();
     });
@@ -437,7 +551,21 @@
         clearContainerChildren();
     });
 
+    test('event - allow preventDuplicates option to be overridden.', 1, function() {
+        var $toast = [];
 
+        $toast[0] = toastr.info(sampleMsg, sampleTitle, {
+            preventDuplicates: true
+        });
+        $toast[1] = toastr.info(sampleMsg, sampleTitle, {
+            preventDuplicates: true
+        });
+        $toast[2] = toastr.info(sampleMsg, sampleTitle);
+        var $container = toastr.getContainer();
+
+        ok($container && $container.children().length === 2);
+        clearContainerChildren();
+    });
 
     module('order of appearance');
     test('Newest toast on top', 1, function () {

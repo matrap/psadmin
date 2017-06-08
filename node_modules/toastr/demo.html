@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <title>toastr examples</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
-    <link href="toastr.css" rel="stylesheet" type="text/css" />
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+    <link href="build/toastr.css" rel="stylesheet" type="text/css" />
     <style>
         .row {
             margin-left: 0;
@@ -47,6 +47,21 @@
                     <div class="controls">
                         <label class="checkbox" for="progressBar">
                             <input id="progressBar" type="checkbox" value="checked" class="input-mini" />Progress Bar
+                        </label>
+                    </div>
+                    <div class="controls">
+                        <label class="checkbox" for="preventDuplicates">
+                            <input id="preventDuplicates" type="checkbox" value="checked" class="input-mini" />Prevent Duplicates
+                        </label>
+                    </div>
+                    <div class="controls">
+                        <label class="checkbox" for="addClear">
+                            <input id="addClear" type="checkbox" value="checked" class="input-mini" />Add button to force clearing a toast, ignoring focus
+                        </label>
+                    </div>
+                    <div class="controls">
+                        <label class="checkbox" for="newestOnTop">
+                            <input id="newestOnTop" type="checkbox" value="checked" class="input-mini" />Newest on top
                         </label>
                     </div>
                 </div>
@@ -159,7 +174,7 @@
     </ul>
 </footer>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script src="toastr.js"></script>
 
 <script type="text/javascript">
@@ -183,6 +198,13 @@
 
             return msgs[i];
         };
+
+        var getMessageWithClearButton = function (msg) {
+            msg = msg ? msg : 'Clear itself?';
+            msg += '<br /><br /><button type="button" class="btn clear">Yes</button>';
+            return msg;
+        };
+
         $('#showtoast').click(function () {
             var shortCutFunction = $("#toastTypeGroup input:radio:checked").val();
             var msg = $('#message').val();
@@ -196,12 +218,15 @@
             var $showMethod = $('#showMethod');
             var $hideMethod = $('#hideMethod');
             var toastIndex = toastCount++;
+            var addClear = $('#addClear').prop('checked');
 
             toastr.options = {
                 closeButton: $('#closeButton').prop('checked'),
                 debug: $('#debugInfo').prop('checked'),
+                newestOnTop: $('#newestOnTop').prop('checked'),
                 progressBar: $('#progressBar').prop('checked'),
                 positionClass: $('#positionGroup input:radio:checked').val() || 'toast-top-right',
+                preventDuplicates: $('#preventDuplicates').prop('checked'),
                 onclick: null
             };
 
@@ -220,11 +245,11 @@
             }
 
             if ($timeOut.val().length) {
-                toastr.options.timeOut = $timeOut.val();
+                toastr.options.timeOut = addClear ? 0 : $timeOut.val();
             }
 
             if ($extendedTimeOut.val().length) {
-                toastr.options.extendedTimeOut = $extendedTimeOut.val();
+                toastr.options.extendedTimeOut = addClear ? 0 : $extendedTimeOut.val();
             }
 
             if ($showEasing.val().length) {
@@ -243,21 +268,30 @@
                 toastr.options.hideMethod = $hideMethod.val();
             }
 
+            if (addClear) {
+                msg = getMessageWithClearButton(msg);
+                toastr.options.tapToDismiss = false;
+            }
             if (!msg) {
                 msg = getMessage();
             }
 
-            $("#toastrOptions").text("Command: toastr["
+            $('#toastrOptions').text('Command: toastr["'
                             + shortCutFunction
-                            + "](\""
+                            + '"]("'
                             + msg
-                            + (title ? "\", \"" + title : '')
-                            + "\")\n\ntoastr.options = "
+                            + (title ? '", "' + title : '')
+                            + '")\n\ntoastr.options = '
                             + JSON.stringify(toastr.options, null, 2)
             );
 
             var $toast = toastr[shortCutFunction](msg, title); // Wire up an event handler to a button in the toast, if it exists
             $toastlast = $toast;
+
+            if(typeof $toast === 'undefined'){
+                return;
+            }
+
             if ($toast.find('#okBtn').length) {
                 $toast.delegate('#okBtn', 'click', function () {
                     alert('you clicked me. i was toast #' + toastIndex + '. goodbye!');
@@ -269,7 +303,13 @@
                     alert('Surprise! you clicked me. i was toast #' + toastIndex + '. You could perform an action here.');
                 });
             }
+            if ($toast.find('.clear').length) {
+                $toast.delegate('.clear', 'click', function () {
+                    toastr.clear($toast, { force: true });
+                });
+            }
         });
+
         function getLastToast(){
             return $toastlast;
         }
