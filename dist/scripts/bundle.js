@@ -55208,6 +55208,7 @@ var CourseForm = React.createClass({displayName: "CourseForm",
 		course: React.PropTypes.object.isRequired,
 		onSave: React.PropTypes.func.isRequired,
 		onChange: React.PropTypes.func.isRequired,
+		onAuthorChange: React.PropTypes.func.isRequired,
 		errors: React.PropTypes.object						
 	},
 
@@ -55222,7 +55223,7 @@ var CourseForm = React.createClass({displayName: "CourseForm",
 	getInitialState: function() {
 		return {
 			authorsList: [],
-			authorValue: null
+			authorValue: this.props.course.author.id
 		};
 	},
 
